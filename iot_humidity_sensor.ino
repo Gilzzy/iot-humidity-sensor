@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <chibi.h>
-
+#include <LowPower.h>
 
 int temp = 0;
 int humid = 0;
@@ -18,6 +18,9 @@ char humidString[100];
 void setup() {
   chibiInit();
   
+//  LowPower Mode
+  pinMode(13,OUTPUT);
+  
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
@@ -28,6 +31,12 @@ void setup() {
 //Nothing to do in the main loop, we are setup only then sleep
 void loop() {
   int i = 0;
+  
+  //LowPower Mode
+  digitalWrite(13,HIGH);
+  delay(2000);
+  digitalWrite(13,LOW);
+  
   Wire.begin();
   Wire.beginTransmission(39);
   Wire.write(0x00);
@@ -51,11 +60,13 @@ void loop() {
       dtostrf(finalTemp, 4, 2, tempString);
       dtostrf(finalHumid, 4, 2, humidString);
       //sprintf(postData, "{\"temperature\":%s,\"humidity\":%s}", tempString, humidString);
-      sprintf(postData, "T:%s H:%s\n", tempString, humidString);
+      sprintf(postData, "T:%s H:%s \n", tempString, humidString);
       
       Serial.print(postData);
       
-      chibiTx(BROADCAST_ADDR, (uint8_t*) postData, 20);
+      chibiTx(BROADCAST_ADDR, (uint8_t*) postData, 21);
+      
+      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
       
     }
   }
